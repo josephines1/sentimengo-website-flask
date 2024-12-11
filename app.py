@@ -332,7 +332,7 @@ def download_pdf():
         return redirect(url_for('index'))
 
     df = pd.DataFrame(session['preprocessed_data'])
-    content_column = request.args.get('content_column', default='content', type=str)
+    content_column = session['content_column']
 
     if content_column not in df.columns:
         return f"Kolom {content_column} tidak ditemukan!"
