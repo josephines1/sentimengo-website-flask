@@ -25,7 +25,7 @@ from datetime import timedelta
 app = Flask(__name__)
 
 # Configurations
-app.config['OUTPUT_FOLDER'] = 'outputs'
+app.config['OUTPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment"
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'xlsx', 'xls'}
 app.config['SECRET_KEY'] = '754ea0d6b3be1ef6d0f54226'
 app.config['SESSION_TYPE'] = 'filesystem'
