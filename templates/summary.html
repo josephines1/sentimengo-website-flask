@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentiment Analysis Summary</title>
+  </head>
+  <body>
+    <h1>Sentiment Analysis Summary</h1>
+
+    <h3>Sentiment Analysis Summary</h3>
+
+    <!-- Pie Chart -->
+    <img
+      src="data:image/png;base64,{{ image_data }}"
+      alt="Sentiment Distribution"
+    />
+
+    <!-- Rata-rata Confidence Score -->
+    <p>Average Confidence Score: {{ avg_probability }}</p>
+
+    <!-- Tampilkan distribusi sentiment -->
+    <h4>Sentiment Counts:</h4>
+    <ul>
+      {% for sentiment, count in sentiment_counts.items() %}
+      <li>{{ sentiment }}: {{ count }}</li>
+      {% endfor %}
+    </ul>
+
+    <a href="/result">View Detailed Results</a><br />
+
+    <a href="/download_csv">Download CSV</a><br />
+    <a href="/download_pdf">Download PDF</a>
+  </body>
+</html>
