@@ -1,0 +1,9 @@
+Flask==2.3.3
+Werkzeug==2.3.4
+pandas==2.1.0
+torch==2.1.0
+transformers==4.35.0
+matplotlib==3.8.0
+Sastrawi==1.0.3
+nltk==3.8.1
+reportlab==4.0.0

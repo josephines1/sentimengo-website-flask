@@ -14,9 +14,38 @@
       rel="stylesheet"
       type="text/css"
     />
+
+    <!-- HTML in your document's head -->
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+
+    <!-- SweetAlert CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.6/dist/sweetalert2.min.css"
+    />
+
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      /* CSS */
+      :root {
+        font-family: Inter, sans-serif;
+        font-feature-settings: "liga" 1, "calt" 1, "cv11" 1; /* Perbaiki penulisan properti font-feature-settings */
+      }
+
+      /* Cek apakah browser mendukung font-variation-settings */
+      @supports (font-variation-settings: normal) {
+        :root {
+          font-family: "InterVariable", sans-serif; /* Pastikan nama font benar */
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="bg-white h-screen">
+      <!-- Header - Start -->
       <header class="absolute inset-x-0 top-0 z-50">
         <nav
           class="flex items-center justify-center p-6 lg:px-8"
@@ -34,8 +63,11 @@
           </div>
         </nav>
       </header>
+      <!-- Header - End -->
 
+      <!-- Page Content - Start -->
       <div class="relative isolate px-6 pt-14 lg:px-8">
+        <!-- Gradient -->
         <div
           class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
           aria-hidden="true"
@@ -64,6 +96,8 @@
             "
           ></div>
         </div>
+
+        <!-- Main Content - Start -->
         <div class="mx-auto max-w-2xl py-24">
           <div class="text-center">
             <h1
@@ -81,16 +115,16 @@
 
             <!-- Form untuk upload file data csv / excel  -->
             <form action="/upload" method="POST" enctype="multipart/form-data">
-              <label class="form-control w-full max-w-xs mt-4 mx-auto">
+              <label class="form-control w-full max-w-md mt-4 mx-auto">
                 <div class="label">
-                  <span class="label-text">Upload File CSV dan XLXS</span>
+                  <span class="label-text">Upload File CSV atau XLXS</span>
                 </div>
                 <input
                   type="file"
                   name="file"
                   accept=".csv, .xlsx, .xls"
                   required
-                  class="file-input file-input-bordered w-full max-w-xs"
+                  class="file-input file-input-bordered w-full"
                 />
               </label>
               <button type="submit" class="btn btn-primary block mt-4 mx-auto">
@@ -128,6 +162,22 @@
           ></div>
         </div>
       </div>
+      <!-- Page Content - End -->
     </div>
+
+    <!-- SweetAlert for display errors -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <script>
+      // Loop through all flash messages and display using SweetAlert
+      {% for category, message in messages %}
+          Swal.fire({
+              title: "Error",  // Set the title for the error
+              text: "{{ message }}",  // Display the message from Flask
+              icon: "error",  // Display an error icon
+          });
+      {% endfor %}
+    </script>
+    {% endif %} {% endwith %}
   </body>
 </html>

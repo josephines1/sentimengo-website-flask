@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from flask import Flask, render_template, request, send_file, redirect, jsonify, url_for, session
+from flask import Flask, render_template, request, send_file, redirect, jsonify, url_for, session, flash
 from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -17,13 +17,15 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from tempfile import NamedTemporaryFile
 import base64
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 # Flask app initialization
 app = Flask(__name__)
 
 # Configurations
-app.config['OUTPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment"
+app.config['CSV_OUTPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_outputs"
+app.config['PDF_REPORT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\pdf_reports"
+app.config['INPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_excel_inputs"
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'xlsx', 'xls'}
 app.config['SECRET_KEY'] = '754ea0d6b3be1ef6d0f54226'
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -98,9 +100,13 @@ def calculate_average_probability(df_result):
     avg_probability = df_result['Confidence Score'].mean()
     return avg_probability
 
-def save_to_pdf(df, fig, avg_probability, output_path="sentiment_analysis_report.pdf"):
+def save_to_pdf(df, fig, avg_probability, pdf_buffer=None, output_path=None):
     # Buat dokumen PDF
-    doc = SimpleDocTemplate(output_path, pagesize=letter)
+    if pdf_buffer:
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=letter)
+    else:
+        doc = SimpleDocTemplate(output_path, pagesize=letter)
+
     elements = []
 
     # Tambahkan judul dan rata-rata
@@ -149,13 +155,14 @@ def save_to_pdf(df, fig, avg_probability, output_path="sentiment_analysis_report
         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, -1), 12),
     ]))
-    elements.append(Image(temp_img_path, width=400, height=250))  # Tambahkan gambar dengan elemen Image
+    elements.append(Image(temp_img_path, width=400, height=400))
 
     # Build dokumen PDF
     doc.build(elements)
 
     # Bersihkan file sementara
     os.remove(temp_img_path)
+
 
 def split_table(df, max_columns=5):
     """
@@ -195,10 +202,17 @@ def upload_file():
     if request.method == 'POST':
         file = request.files.get('file')
         if not file or not allowed_file(file.filename):
-            return jsonify({'error': 'File not allowed'})
+            flash('File tidak diperbolehkan!', 'error')
+            return redirect(request.url)
+
+        # Simpan file input dari user
+        now = datetime.now()
+        timestamp = now.strftime("%Y%m%d_%H%M%S") # Format: YYYYMMDD_HHMMSS
 
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+        new_filename = f"input_{timestamp}_{filename}"
+
+        file_path = os.path.join(app.config['INPUT_FOLDER'], new_filename)
         file.save(file_path)
 
         # Read file and save to session
@@ -207,15 +221,28 @@ def upload_file():
         elif filename.endswith(('.xlsx', '.xls')):
             df = pd.read_excel(file_path)
 
-        # Store in session
+        # Define required columns
+        required_columns = ['content', 'score', 'thumbsUpCount', 'reviewCreatedVersion', 'at', 'kota']
+        session['columns'] = required_columns
+
+        # Check if all required columns are present in the uploaded file
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            flash(f'Kolom berikut tidak ditemukan: {", ".join(missing_columns)}', 'error')
+            return redirect(request.url)
+        
+        # Filter only required columns (columns present in both df and required_columns)
+        df = df[required_columns]
+
+        # Store the filtered data in session
         session['data'] = df.to_dict(orient='records')
-        session['columns'] = df.columns.tolist()
 
         # Preprocess data
         df = df.drop_duplicates()
         content_column = request.form.get('content_column', default=df.columns[0])
         if content_column not in df.columns:
-            return f"Kolom {content_column} tidak ditemukan!"
+            flash(f"Kolom {content_column} tidak ditemukan!", 'error')
+            return redirect(request.url)
 
         df.dropna(subset=[content_column], inplace=True)
         df = df.dropna(subset=[content_column])
@@ -254,35 +281,6 @@ def choose_column():
 
     return redirect(url_for('summary'))
 
-@app.route('/result', methods=['POST', 'GET'])
-def result():
-    if 'preprocessed_data' not in session or 'content_column' not in session:
-        return redirect(url_for('index'))  # Redirect to upload if no data in session
-
-    content_column = session['content_column']
-    df = pd.DataFrame(session['preprocessed_data'])    
-    df_result = analyze_sentiment(df, content_column)
-    columns = df_result.columns.tolist()
-    values = df_result.values.tolist()
-
-    # Define paths for saving PDF and CSV
-    pdf_path = os.path.join(app.config['OUTPUT_FOLDER'], "sentiment_analysis_report.pdf")
-    csv_path = os.path.join(app.config['OUTPUT_FOLDER'], "sentiment_analysis_output.csv")
-
-    # Create sentiment graph
-    fig, sentiment_counts = create_sentiment_graph(df_result)
-
-    # Calculate average probability
-    avg_probability = calculate_average_probability(df_result)
-
-    # Save to PDF
-    save_to_pdf(df_result, fig, avg_probability, pdf_path)
-
-    # Save to CSV
-    df_result.to_csv(csv_path, index=False)
-
-    return render_template('result.html', df=values, columns=columns)
-
 # Summary and download options
 @app.route('/summary', methods=['GET'])
 def summary():
@@ -305,6 +303,7 @@ def summary():
     img_stream.seek(0)   
 
     avg_probability = float(df_result['Confidence Score'].mean())
+    avg_probability = round(avg_probability * 100, 2)
     image_data = base64.b64encode(img_stream.getvalue()).decode('utf-8')
 
     session['sentiment_counts'] = sentiment_counts_dict
@@ -314,9 +313,16 @@ def summary():
     columns = df_result.columns.tolist()
     values = df_result.values.tolist()
 
-    # Define paths for saving PDF and CSV
-    pdf_path = os.path.join(app.config['OUTPUT_FOLDER'], "sentiment_analysis_report.pdf")
-    csv_path = os.path.join(app.config['OUTPUT_FOLDER'], "sentiment_analysis_output.csv")
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+
+    # Tentukan path untuk PDF dengan nama file unik
+    pdf_filename = f"sentiment_analysis_report_{timestamp}.pdf"
+    pdf_path = os.path.join(app.config['PDF_REPORT_FOLDER'], pdf_filename)
+
+    # Tentukan path untuk CSV dengan nama file unik
+    csv_filename = f"sentiment_analysis_output_{timestamp}.csv"
+    csv_path = os.path.join(app.config['CSV_OUTPUT_FOLDER'], csv_filename)
 
     # Create sentiment graph and save files
     save_to_pdf(df_result, fig, avg_probability, pdf_path)
@@ -345,10 +351,21 @@ def download_pdf():
     fig, sentiment_counts = create_sentiment_graph(df_result)
     avg_probability = calculate_average_probability(df_result)
 
-    pdf_path = "sentiment_analysis_report.pdf"
-    save_to_pdf(df_result, fig, avg_probability, pdf_path)
+    # Create PDF in memory (without saving it to disk)
+    pdf_buffer = BytesIO()
+    save_to_pdf(df_result, fig, avg_probability, pdf_buffer=pdf_buffer)  # PDF to buffer for user download
 
-    return send_file(pdf_path, as_attachment=True)
+    # Set buffer position to the beginning
+    pdf_buffer.seek(0)
+
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+
+    # Tentukan path untuk PDF dengan nama file unik
+    pdf_filename = f"sentiment_analysis_report_{timestamp}.pdf"
+
+    return send_file(pdf_buffer, as_attachment=True, download_name=pdf_filename, mimetype='application/pdf')
+
 
 @app.route('/download_csv')
 def download_csv():
@@ -359,10 +376,24 @@ def download_csv():
     df = pd.DataFrame(session['preprocessed_data'])
     df_result = analyze_sentiment(df, content_column)
 
-    df_result.to_csv(os.path.join(app.config['OUTPUT_FOLDER'], 'sentiment_analysis_output.csv'), index=False)
-    return send_file(os.path.join(app.config['OUTPUT_FOLDER'], 'sentiment_analysis_output.csv'), as_attachment=True)
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+
+    # Tentukan path untuk CSV dengan nama file unik
+    csv_filename = f"sentiment_analysis_output_{timestamp}.csv"
+    csv_path = os.path.join(app.config['CSV_OUTPUT_FOLDER'], csv_filename)
+
+    df_result.to_csv(csv_path, index=False)
+    return send_file(csv_path, as_attachment=True)
 
 if __name__ == '__main__':
-    if not os.path.exists(app.config['OUTPUT_FOLDER']):
-        os.makedirs(app.config['OUTPUT_FOLDER'])
+    # Cek apakah folder untuk CSV sudah ada, jika belum buat folder tersebut
+    if not os.path.exists(app.config['CSV_OUTPUT_FOLDER']):
+        os.makedirs(app.config['CSV_OUTPUT_FOLDER'])
+    
+    # Cek apakah folder untuk PDF sudah ada, jika belum buat folder tersebut
+    if not os.path.exists(app.config['PDF_REPORT_FOLDER']):
+        os.makedirs(app.config['PDF_REPORT_FOLDER'])
+    
+    # Jalankan aplikasi Flask
     app.run(debug=True)
