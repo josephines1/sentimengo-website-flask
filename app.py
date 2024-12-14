@@ -6,8 +6,6 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from flask import Flask, render_template, request, send_file, redirect, jsonify, url_for, session
 from werkzeug.utils import secure_filename
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from io import BytesIO
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
@@ -313,6 +311,9 @@ def summary():
     session['avg_probability'] = avg_probability
     session['image_data'] = image_data
 
+    columns = df_result.columns.tolist()
+    values = df_result.values.tolist()
+
     # Define paths for saving PDF and CSV
     pdf_path = os.path.join(app.config['OUTPUT_FOLDER'], "sentiment_analysis_report.pdf")
     csv_path = os.path.join(app.config['OUTPUT_FOLDER'], "sentiment_analysis_output.csv")
@@ -324,7 +325,8 @@ def summary():
     return render_template('summary.html', 
                            sentiment_counts=sentiment_counts_dict, 
                            avg_probability=avg_probability, 
-                           image_data=image_data)
+                           image_data=image_data,
+                           df=values, columns=columns)
 
 @app.route('/download_pdf', methods=['GET'])
 def download_pdf():

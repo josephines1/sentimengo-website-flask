@@ -4,32 +4,152 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sentiment Analysis Summary</title>
-  </head>
-  <body>
-    <h1>Sentiment Analysis Summary</h1>
 
-    <h3>Sentiment Analysis Summary</h3>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Pie Chart -->
-    <img
-      src="data:image/png;base64,{{ image_data }}"
-      alt="Sentiment Distribution"
+    <!-- Daisy UI CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@4.12.19/dist/full.min.css"
+      rel="stylesheet"
+      type="text/css"
     />
+  </head>
+  <body class="font-sans antialiased">
+    <div class="bg-white h-screen">
+      <header class="absolute inset-x-0 top-0 z-50">
+        <nav
+          class="flex items-start justify-left p-6 lg:p-0 gap-4"
+          aria-label="Global"
+        >
+          <div class="drawer lg:drawer-open">
+            <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+            <div class="drawer-content flex flex-col">
+              <!-- Page content here -->
+              <div class="flex w-full items-center justify-start gap-4">
+                <label
+                  for="my-drawer-2"
+                  class="btn btn-primary drawer-button lg:hidden"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="icon icon-tabler icons-tabler-outline icon-tabler-menu"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M4 8l16 0" />
+                    <path d="M4 16l16 0" />
+                  </svg>
+                </label>
 
-    <!-- Rata-rata Confidence Score -->
-    <p>Average Confidence Score: {{ avg_probability }}</p>
+                <div class="lg:px-8">
+                  <a
+                    href="/"
+                    class="-m-1.5 p-1.5 gap-4 items-center flex lg:py-6"
+                  >
+                    <img
+                      class="h-8 w-auto hidden lg:block"
+                      src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+                      alt=""
+                    />
+                    <span>SentimenGo Analysis Summary</span>
+                  </a>
+                </div>
+              </div>
 
-    <!-- Tampilkan distribusi sentiment -->
-    <h4>Sentiment Counts:</h4>
-    <ul>
-      {% for sentiment, count in sentiment_counts.items() %}
-      <li>{{ sentiment }}: {{ count }}</li>
-      {% endfor %}
-    </ul>
+              <div class="lg:flex-row items-center flex-col flex mt-4">
+                <!-- Pie Chart -->
+                <img
+                  src="data:image/png;base64,{{ image_data }}"
+                  alt="Sentiment Distribution"
+                  class="w-96"
+                />
 
-    <a href="/result">View Detailed Results</a><br />
+                <div class="text">
+                  <div class="mb-4">
+                    <!-- Rata-rata Confidence Score -->
+                    <h3
+                      class="text-xl font-bold text-gray-900 sm:truncate sm:text-lg sm:tracking-tight"
+                    >
+                      Average Confidence Score
+                    </h3>
+                    <p
+                      class="py-1 px-2 mt-1 rounded-lg bg-gray-500 text-white w-fit"
+                    >
+                      {{ avg_probability }}
+                    </p>
+                  </div>
 
-    <a href="/download_csv">Download CSV</a><br />
-    <a href="/download_pdf">Download PDF</a>
+                  <div>
+                    <!-- Tampilkan distribusi sentiment -->
+                    <h3
+                      class="text-xl font-bold text-gray-900 sm:truncate sm:text-lg sm:tracking-tight"
+                    >
+                      Sentiment Counts
+                    </h3>
+                    <div class="stats shadow">
+                      {% for sentiment, count in sentiment_counts.items() %}
+                      <div class="stat place-items-center">
+                        <div class="stat-title">{{ sentiment }}</div>
+                        <div class="stat-value">{{ count }}</div>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mx-auto max-w-full p-4">
+                <div class="overflow-x-auto mx-auto max-h-[90vh] max-w-full">
+                  <table
+                    border="1"
+                    class="table table-xs table-pin-rows p-3 bg-white z-0"
+                  >
+                    <thead>
+                      <tr>
+                        {% for column in columns %}
+                        <th>{{ column }}</th>
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for row in df %}
+                      <tr class="hover">
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="drawer-side">
+              <label
+                for="my-drawer-2"
+                aria-label="close sidebar"
+                class="drawer-overlay"
+              ></label>
+              <ul
+                class="menu bg-base-200 text-base-content min-h-full w-80 p-4"
+              >
+                <!-- Sidebar content here -->
+                <li><a href="/result">View Detailed Results</a></li>
+                <li><a href="/download_csv">Download CSV</a></li>
+                <li><a href="/download_pdf">Download PDF</a></li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </header>
+    </div>
   </body>
 </html>

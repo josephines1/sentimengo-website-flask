@@ -16,32 +16,11 @@
     />
 
     <style>
-        table {
-            width: 100%;
-            table-layout: fixed; /* Mengatur agar kolom tetap memiliki ukuran tetap */
-        }
         th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
             word-wrap: break-word; /* Memungkinkan wrapping teks di dalam kolom */
             overflow-wrap: break-word; /* Memastikan kata panjang dipotong dengan rapi */
-        }
-        /* Membuat tabel scrollable di perangkat mobile */
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch; /* Untuk scrolling yang lebih mulus di perangkat iOS */
-        }
-        /* Media query untuk perangkat dengan lebar layar kecil */
-        @media screen and (max-width: 600px) {
-            table {
-                width: 100%;
-                font-size: 14px; /* Ukuran font lebih kecil di perangkat mobile */
-            }
-
-            th, td {
-                padding: 10px;
-            }
+            min-width: 100px;
+            max-width: 150px;
         }
     </style>
 </head>
@@ -110,20 +89,24 @@
                     </div>                                       
                 </form>
 
-                <div class="overflow-x-auto bg-white p-3 mt-4 mx-auto max-h-[90vh] table-container">
-                    <table border="1" class="table table-xs">
-                        <tr>
-                            {% for column in columns %}
-                                <th>{{ column }}</th>
-                            {% endfor %}
-                        </tr>
-                        {% for row in df %}
-                            <tr class="hover">
-                                {% for cell in row %}
-                                    <td>{{ cell }}</td>
+                <div class="overflow-x-auto mx-auto max-h-[90vh] mt-4">
+                    <table border="1" class="table table-xs table-pin-rows p-3 bg-white">
+                        <thead>
+                            <tr>
+                                {% for column in columns %}
+                                    <th>{{ column }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endfor %}
+                        </thead>
+                        <tbody>
+                            {% for row in df %}
+                                <tr class="hover">
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
             </div>
