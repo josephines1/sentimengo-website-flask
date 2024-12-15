@@ -23,9 +23,9 @@ from datetime import timedelta, datetime
 app = Flask(__name__)
 
 # Configurations
-app.config['CSV_OUTPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_outputs"
-app.config['PDF_REPORT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\pdf_reports"
-app.config['INPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_excel_inputs"
+app.config['CSV_OUTPUT_FOLDER'] = "outputs/csv"
+app.config['PDF_REPORT_FOLDER'] = "outputs/pdf"
+app.config['INPUT_FOLDER'] = "inputs"
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'xlsx', 'xls'}
 app.config['SECRET_KEY'] = '754ea0d6b3be1ef6d0f54226'
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -184,61 +184,76 @@ def index():
     return render_template('index.html')
 
 # Handling file upload
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['POST', 'GET'])
 def upload_file():
-    file = request.files.get('file')
-    if not file or not allowed_file(file.filename):
-        flash('File tidak diperbolehkan!', 'error')
-        return redirect(request.url)
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if not file or not allowed_file(file.filename):
+            flash('File tidak diperbolehkan!', 'error')
+            return redirect(request.url)
 
-    # Simpan file input dari user
-    now = datetime.now()
-    timestamp = now.strftime("%Y%m%d_%H%M%S") # Format: YYYYMMDD_HHMMSS
+        # Simpan file input dari user
+        now = datetime.now()
+        timestamp = now.strftime("%Y%m%d_%H%M%S") # Format: YYYYMMDD_HHMMSS
 
-    filename = secure_filename(file.filename)
-    new_filename = f"input_{timestamp}_{filename}"
+        filename = secure_filename(file.filename)
+        new_filename = f"input_{timestamp}_{filename}"
 
-    file_path = os.path.join(app.config['INPUT_FOLDER'], new_filename)
-    file.save(file_path)
+        file_path = os.path.join(app.config['INPUT_FOLDER'], new_filename)
+        file.save(file_path)
 
-    # Read file and save to session
-    if filename.endswith('.csv'):
-        df = pd.read_csv(file_path)
-    elif filename.endswith(('.xlsx', '.xls')):
-        df = pd.read_excel(file_path)
+        # Read file and save to session
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif filename.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file_path)
 
-    # Define required columns
-    required_columns = ['content', 'score', 'thumbsUpCount', 'reviewCreatedVersion', 'at', 'kota']
-    session['columns'] = required_columns
+        # Define required columns
+        required_columns = ['content', 'score', 'thumbsUpCount', 'reviewCreatedVersion', 'at', 'kota']
+        session['columns'] = required_columns
 
-    # Check if all required columns are present in the uploaded file
-    missing_columns = [col for col in required_columns if col not in df.columns]
-    if missing_columns:
-        flash(f'Kolom berikut tidak ditemukan: {", ".join(missing_columns)}', 'error')
-        return redirect(request.url)
+        # Check if all required columns are present in the uploaded file
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            flash(f'Kolom berikut tidak ditemukan: {", ".join(missing_columns)}', 'error')
+            return redirect(request.url)
+        
+        # Filter only required columns (columns present in both df and required_columns)
+        df = df[required_columns]
+
+        # Store the filtered data in session
+        session['data'] = df.to_dict(orient='records')
+
+        # Preprocess data
+        df = df.drop_duplicates()
+        if 'content' not in df.columns:
+            flash(f"Kolom 'content' tidak ditemukan!", 'error')
+            return redirect(request.url)
+
+        df.dropna(subset=['content'], inplace=True)
+        df = df.dropna(subset=['content'])
+        for col, dtype in df.dtypes.items():
+            if dtype == 'object':
+                df[col].fillna("Unknown", inplace=True)
+            elif np.issubdtype(dtype, np.datetime64):
+                df[col].fillna(pd.Timestamp("1970-01-01"), inplace=True)
+
+        # Validate 'at' column format (YYYY-MM-DD HH:MM:SS)
+        try:
+            df['at'] = pd.to_datetime(df['at'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+            # Check if any date is invalid (NaT means Not a Time)
+            if df['at'].isna().any():
+                invalid_rows = df[df['at'].isna()]
+                flash(f"Tanggal pada kolom at yang tidak valid: {invalid_rows.index.tolist()}. \nUpload kolom tanggal at dengam format YYYY-MM-DD HH:MM:SS", 'error')
+                return redirect(request.url)
+        except Exception as e:
+            flash(f"Terjadi kesalahan saat memvalidasi kolom 'at': {str(e)}", 'error')
+            return redirect(request.url)
+
+        session['preprocessed_data'] = df.to_dict(orient='records')
+        return redirect(url_for('view_data'))
     
-    # Filter only required columns (columns present in both df and required_columns)
-    df = df[required_columns]
-
-    # Store the filtered data in session
-    session['data'] = df.to_dict(orient='records')
-
-    # Preprocess data
-    df = df.drop_duplicates()
-    if 'content' not in df.columns:
-        flash(f"Kolom 'content' tidak ditemukan!", 'error')
-        return redirect(request.url)
-
-    df.dropna(subset=['content'], inplace=True)
-    df = df.dropna(subset=['content'])
-    for col, dtype in df.dtypes.items():
-        if dtype == 'object':
-            df[col].fillna("Unknown", inplace=True)
-        elif np.issubdtype(dtype, np.datetime64):
-            df[col].fillna(pd.Timestamp("1970-01-01"), inplace=True)
-
-    session['preprocessed_data'] = df.to_dict(orient='records')
-    return redirect(url_for('view_data'))
+    return render_template('index.html')
 
 # Viewing data
 @app.route('/view-data', methods=['GET'])
