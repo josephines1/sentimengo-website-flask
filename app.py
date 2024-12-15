@@ -23,9 +23,9 @@ from datetime import timedelta, datetime
 app = Flask(__name__)
 
 # Configurations
-app.config['CSV_OUTPUT_FOLDER'] = "outputs/csv"
-app.config['PDF_REPORT_FOLDER'] = "outputs/pdf"
-app.config['INPUT_FOLDER'] = "inputs"
+app.config['CSV_OUTPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_outputs"
+app.config['PDF_REPORT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\pdf_reports"
+app.config['INPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_excel_inputs"
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'xlsx', 'xls'}
 app.config['SECRET_KEY'] = '754ea0d6b3be1ef6d0f54226'
 app.config['SESSION_TYPE'] = 'filesystem'
