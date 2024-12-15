@@ -23,29 +23,15 @@ from datetime import timedelta, datetime
 app = Flask(__name__)
 
 # Configurations
-app.config['CSV_OUTPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_outputs"
-app.config['PDF_REPORT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\pdf_reports"
-app.config['INPUT_FOLDER'] = "C:\\Users\\USER\\Komunitas Maribelajar Indonesia\\CP7 - 07 - Gema Indonesia - Documents\\General\\06 - Deployment\\csv_excel_inputs"
+app.config['CSV_OUTPUT_FOLDER'] = "outputs/csv"
+app.config['PDF_REPORT_FOLDER'] = "outputs/pdf"
+app.config['INPUT_FOLDER'] = "inputs"
 app.config['ALLOWED_EXTENSIONS'] = {'csv', 'xlsx', 'xls'}
 app.config['SECRET_KEY'] = '754ea0d6b3be1ef6d0f54226'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-
-@app.before_request
-def make_session_permanent():
-    session.permanent = True
-    if 'data' not in session:
-        session['data'] = None
-    if 'preprocessed_data' not in session:
-        session['preprocessed_data'] = None
-    if 'sentiment_counts' not in session:
-        session['sentiment_counts'] = None
-    if 'avg_probability' not in session:
-        session['avg_probability'] = None
-    if 'image_data' not in session:
-        session['image_data'] = None
 
 # Load Tokenizer and Model
 tokenizer = AutoTokenizer.from_pretrained("josephine-huggingface/bert-sentimengo")
@@ -173,9 +159,9 @@ def split_table(df, max_columns=5):
     return chunks
 
 # Sentiment analysis function
-def analyze_sentiment(df, content_column):
-    df.dropna(subset=[content_column], inplace=True)
-    text_preprocessed = df[content_column].apply(text_preprocessing_process)
+def analyze_sentiment(df):
+    df.dropna(subset=['content'], inplace=True)
+    text_preprocessed = df['content'].apply(text_preprocessing_process)
 
     inputs = tokenizer(text_preprocessed.tolist(), padding=True, truncation=True, return_tensors="pt")
     with torch.no_grad():
@@ -194,68 +180,65 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
+    session.clear()
     return render_template('index.html')
 
 # Handling file upload
-@app.route('/upload', methods=['POST', 'GET'])
+@app.route('/upload', methods=['POST'])
 def upload_file():
-    if request.method == 'POST':
-        file = request.files.get('file')
-        if not file or not allowed_file(file.filename):
-            flash('File tidak diperbolehkan!', 'error')
-            return redirect(request.url)
+    file = request.files.get('file')
+    if not file or not allowed_file(file.filename):
+        flash('File tidak diperbolehkan!', 'error')
+        return redirect(request.url)
 
-        # Simpan file input dari user
-        now = datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S") # Format: YYYYMMDD_HHMMSS
+    # Simpan file input dari user
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S") # Format: YYYYMMDD_HHMMSS
 
-        filename = secure_filename(file.filename)
-        new_filename = f"input_{timestamp}_{filename}"
+    filename = secure_filename(file.filename)
+    new_filename = f"input_{timestamp}_{filename}"
 
-        file_path = os.path.join(app.config['INPUT_FOLDER'], new_filename)
-        file.save(file_path)
+    file_path = os.path.join(app.config['INPUT_FOLDER'], new_filename)
+    file.save(file_path)
 
-        # Read file and save to session
-        if filename.endswith('.csv'):
-            df = pd.read_csv(file_path)
-        elif filename.endswith(('.xlsx', '.xls')):
-            df = pd.read_excel(file_path)
+    # Read file and save to session
+    if filename.endswith('.csv'):
+        df = pd.read_csv(file_path)
+    elif filename.endswith(('.xlsx', '.xls')):
+        df = pd.read_excel(file_path)
 
-        # Define required columns
-        required_columns = ['content', 'score', 'thumbsUpCount', 'reviewCreatedVersion', 'at', 'kota']
-        session['columns'] = required_columns
+    # Define required columns
+    required_columns = ['content', 'score', 'thumbsUpCount', 'reviewCreatedVersion', 'at', 'kota']
+    session['columns'] = required_columns
 
-        # Check if all required columns are present in the uploaded file
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        if missing_columns:
-            flash(f'Kolom berikut tidak ditemukan: {", ".join(missing_columns)}', 'error')
-            return redirect(request.url)
-        
-        # Filter only required columns (columns present in both df and required_columns)
-        df = df[required_columns]
+    # Check if all required columns are present in the uploaded file
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        flash(f'Kolom berikut tidak ditemukan: {", ".join(missing_columns)}', 'error')
+        return redirect(request.url)
+    
+    # Filter only required columns (columns present in both df and required_columns)
+    df = df[required_columns]
 
-        # Store the filtered data in session
-        session['data'] = df.to_dict(orient='records')
+    # Store the filtered data in session
+    session['data'] = df.to_dict(orient='records')
 
-        # Preprocess data
-        df = df.drop_duplicates()
-        content_column = request.form.get('content_column', default=df.columns[0])
-        if content_column not in df.columns:
-            flash(f"Kolom {content_column} tidak ditemukan!", 'error')
-            return redirect(request.url)
+    # Preprocess data
+    df = df.drop_duplicates()
+    if 'content' not in df.columns:
+        flash(f"Kolom 'content' tidak ditemukan!", 'error')
+        return redirect(request.url)
 
-        df.dropna(subset=[content_column], inplace=True)
-        df = df.dropna(subset=[content_column])
-        for col, dtype in df.dtypes.items():
-            if dtype == 'object':
-                df[col].fillna("Unknown", inplace=True)
-            elif np.issubdtype(dtype, np.datetime64):
-                df[col].fillna(pd.Timestamp("1970-01-01"), inplace=True)
+    df.dropna(subset=['content'], inplace=True)
+    df = df.dropna(subset=['content'])
+    for col, dtype in df.dtypes.items():
+        if dtype == 'object':
+            df[col].fillna("Unknown", inplace=True)
+        elif np.issubdtype(dtype, np.datetime64):
+            df[col].fillna(pd.Timestamp("1970-01-01"), inplace=True)
 
-        session['preprocessed_data'] = df.to_dict(orient='records')
-        return redirect(url_for('view_data'))
-
-    return render_template('index.html')
+    session['preprocessed_data'] = df.to_dict(orient='records')
+    return redirect(url_for('view_data'))
 
 # Viewing data
 @app.route('/view-data', methods=['GET'])
@@ -270,49 +253,32 @@ def view_data():
     return render_template('view-data.html', df=values, columns=columns)
 
 # Analyze and show sentiment result
-@app.route('/choose_column', methods=['POST'])
-def choose_column():
-    content_column = request.form['content_column']
+@app.route('/process_data', methods=['POST'])
+def process_data():
     df = pd.DataFrame(session['preprocessed_data'])
-    if content_column not in df.columns:
+    if 'content' not in df.columns:
         return jsonify({'error': 'Column not found'})
-    
-    session['content_column'] = content_column
 
-    return redirect(url_for('summary'))
+    # analisis sentimen
+    df_result = analyze_sentiment(df)
 
-# Summary and download options
-@app.route('/summary', methods=['GET'])
-def summary():
-    if 'sentiment_counts' not in session or 'avg_probability' not in session or 'image_data' not in session or 'content_column' not in session:
-        return redirect(url_for('index'))
-    
-    content_column = session['content_column']
-    df = pd.DataFrame(session['preprocessed_data'])
-    
-    df_result = analyze_sentiment(df, content_column)
     sentiment_counts = df_result['sentiment'].value_counts()
     sentiment_counts_dict = sentiment_counts.to_dict()
 
+    # membuat grafik
     fig, ax = plt.subplots()
     ax.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90, colors=['yellow', 'green', 'red'])
     ax.axis('equal')
 
     img_stream = BytesIO()
     fig.savefig(img_stream, format='png')
-    img_stream.seek(0)   
+    img_stream.seek(0)
 
+    # menghitung confidence score rata-rata
     avg_probability = float(df_result['Confidence Score'].mean())
     avg_probability = round(avg_probability * 100, 2)
-    image_data = base64.b64encode(img_stream.getvalue()).decode('utf-8')
 
-    session['sentiment_counts'] = sentiment_counts_dict
-    session['avg_probability'] = avg_probability
-    session['image_data'] = image_data
-
-    columns = df_result.columns.tolist()
-    values = df_result.values.tolist()
-
+    # Menyimpan file output
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")
 
@@ -328,6 +294,39 @@ def summary():
     save_to_pdf(df_result, fig, avg_probability, pdf_path)
     df_result.to_csv(csv_path, index=False)
 
+    return redirect(url_for('summary'))
+
+# Summary and download options
+@app.route('/summary', methods=['GET'])
+def summary():
+    if 'preprocessed_data' not in session:
+        return redirect(url_for('index'))
+    
+    # Mengambil data dari session
+    df = pd.DataFrame(session['preprocessed_data'])
+    
+    # Menganalisis sentimen
+    df_result = analyze_sentiment(df)
+    sentiment_counts = df_result['sentiment'].value_counts()
+    sentiment_counts_dict = sentiment_counts.to_dict()
+
+    # Membuat grafik
+    fig, ax = plt.subplots()
+    ax.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90, colors=['yellow', 'green', 'red'])
+    ax.axis('equal')
+
+    img_stream = BytesIO()
+    fig.savefig(img_stream, format='png')
+    img_stream.seek(0)   
+    image_data = base64.b64encode(img_stream.getvalue()).decode('utf-8')
+
+    # Menghitung rata-rata confidence score analisis
+    avg_probability = float(df_result['Confidence Score'].mean())
+    avg_probability = round(avg_probability * 100, 2)
+
+    columns = df_result.columns.tolist()
+    values = df_result.values.tolist()
+
     return render_template('summary.html', 
                            sentiment_counts=sentiment_counts_dict, 
                            avg_probability=avg_probability, 
@@ -340,12 +339,11 @@ def download_pdf():
         return redirect(url_for('index'))
 
     df = pd.DataFrame(session['preprocessed_data'])
-    content_column = session['content_column']
 
-    if content_column not in df.columns:
-        return f"Kolom {content_column} tidak ditemukan!"
+    if 'content' not in df.columns:
+        return f"Kolom content tidak ditemukan!"
 
-    df_result = analyze_sentiment(df, content_column)
+    df_result = analyze_sentiment(df)
 
     # Generate sentiment graph and PDF
     fig, sentiment_counts = create_sentiment_graph(df_result)
@@ -369,12 +367,11 @@ def download_pdf():
 
 @app.route('/download_csv')
 def download_csv():
-    if 'preprocessed_data' not in session or 'content_column' not in session:
+    if 'preprocessed_data' not in session:
         return redirect(url_for('index'))
     
-    content_column = session['content_column']
     df = pd.DataFrame(session['preprocessed_data'])
-    df_result = analyze_sentiment(df, content_column)
+    df_result = analyze_sentiment(df)
 
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")

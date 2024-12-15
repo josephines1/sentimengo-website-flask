@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Preview Data</title>
 
     <!-- Tailwind CDN -->
@@ -16,101 +16,102 @@
     />
 
     <style>
-        th, td {
-            word-wrap: break-word; /* Memungkinkan wrapping teks di dalam kolom */
-            overflow-wrap: break-word; /* Memastikan kata panjang dipotong dengan rapi */
-            min-width: 100px;
-            max-width: 150px;
-        }
+      th,
+      td {
+        word-wrap: break-word; /* Memungkinkan wrapping teks di dalam kolom */
+        overflow-wrap: break-word; /* Memastikan kata panjang dipotong dengan rapi */
+        min-width: 100px;
+        max-width: 150px;
+      }
     </style>
-</head>
-<body class="font-sans antialiased">
+  </head>
+  <body class="font-sans antialiased">
     <div class="bg-white h-screen">
-        <header class="absolute inset-x-0 top-0 z-50">
-            <nav
-              class="flex items-center justify-center p-6 lg:px-8"
-              aria-label="Global"
-            >
-              <div class="flex">
-                <a href="/" class="-m-1.5 p-1.5 flex gap-4 items-center">
-                  <img
-                    class="h-8 w-auto"
-                    src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                    alt=""
-                  />
-                  <span>SentimenGo</span>
-                </a>
-              </div>
-            </nav>
-        </header>
+      <header class="absolute inset-x-0 top-0 z-50">
+        <nav
+          class="flex items-center justify-center p-6 lg:px-8"
+          aria-label="Global"
+        >
+          <div class="flex">
+            <a href="/" class="-m-1.5 p-1.5 flex gap-4 items-center">
+              <img
+                class="h-8 w-auto"
+                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
+                alt=""
+              />
+              <span>SentimenGo</span>
+            </a>
+          </div>
+        </nav>
+      </header>
 
-        <div class="relative isolate px-6 pt-14 lg:px-8">
-            <div
-            class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-            aria-hidden="true"
-            >
-            <div
-                class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                style="
-                clip-path: polygon(
-                    74.1% 44.1%,
-                    100% 61.6%,
-                    97.5% 26.9%,
-                    85.5% 0.1%,
-                    80.7% 2%,
-                    72.5% 32.5%,
-                    60.2% 62.4%,
-                    52.4% 68.1%,
-                    47.5% 58.3%,
-                    45.2% 34.5%,
-                    27.5% 76.7%,
-                    0.1% 64.9%,
-                    17.9% 100%,
-                    27.6% 76.8%,
-                    76.1% 97.7%,
-                    74.1% 44.1%
-                );
-                "
-            ></div>
-            </div>
-            <div class="mx-auto max-w-6xl py-16">
-                <h1 class="text-balance text-xl font-semibold tracking-tight text-gray-900 sm:text-3xl">Preview Data</h1>
-
-                <form action="/choose_column" method="POST" class="mt-4">
-                    <label for="content_column" class="block mb-2">Choose Column to Analyze:</label>
-
-                    <div class="join">
-                        <select name="content_column" id="content_column" class="select select-bordered w-full max-w-xs join-item">
-                            {% for column in columns %}
-                                <option value="{{ column }}" {% if column == "content" %}selected{% endif %}>{{ column }}</option>
-                            {% endfor %}
-                        </select> 
-                        <button type="submit" class="join-item btn btn-primary">Analyze Sentiment</button> 
-                    </div>                                       
-                </form>
-
-                <div class="overflow-x-auto mx-auto max-h-[90vh] mt-4">
-                    <table border="1" class="table table-xs table-pin-rows p-3 bg-white">
-                        <thead>
-                            <tr>
-                                {% for column in columns %}
-                                    <th>{{ column }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in df %}
-                                <tr class="hover">
-                                    {% for cell in row %}
-                                        <td>{{ cell }}</td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      <div class="relative isolate px-6 pt-14 lg:px-8">
+        <div
+          class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+          aria-hidden="true"
+        >
+          <div
+            class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+            style="
+              clip-path: polygon(
+                74.1% 44.1%,
+                100% 61.6%,
+                97.5% 26.9%,
+                85.5% 0.1%,
+                80.7% 2%,
+                72.5% 32.5%,
+                60.2% 62.4%,
+                52.4% 68.1%,
+                47.5% 58.3%,
+                45.2% 34.5%,
+                27.5% 76.7%,
+                0.1% 64.9%,
+                17.9% 100%,
+                27.6% 76.8%,
+                76.1% 97.7%,
+                74.1% 44.1%
+              );
+            "
+          ></div>
         </div>
+        <div class="mx-auto max-w-6xl py-16">
+          <h1
+            class="text-balance text-xl font-semibold tracking-tight text-gray-900 sm:text-3xl"
+          >
+            Preview Data
+          </h1>
+
+          <form action="/process_data" method="POST" class="mt-4">
+            <button type="submit" class="join-item btn btn-primary">
+              Start Analyze Sentiment
+            </button>
+          </form>
+
+          <div class="overflow-x-auto mx-auto max-h-[90vh] mt-4">
+            <table
+              border="1"
+              class="table table-xs table-pin-rows p-3 bg-white"
+            >
+              <thead>
+                <tr>
+                  {% for column in columns %}
+                  <th>{{ column }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in df %}
+                <tr class="hover">
+                  {% for cell in row %}
+                  <td>{{ cell }}</td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-</body>
+  </body>
 </html>
