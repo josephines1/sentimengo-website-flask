@@ -1,0 +1,110 @@
+/* CSS */
+:root {
+  font-family: Inter, sans-serif;
+  font-feature-settings: "liga" 1, "calt" 1, "cv11" 1; /* Perbaiki penulisan properti font-feature-settings */
+}
+
+/* Cek apakah browser mendukung font-variation-settings */
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: "InterVariable", sans-serif; /* Pastikan nama font benar */
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInDown {
+  animation: fadeInDown 1.2s ease-in-out forwards;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 1.2s ease-in-out forwards;
+}
+
+.loader {
+  width: 1.5rem;
+  aspect-ratio: 1;
+  border: 0.75rem solid #fff;
+  border-radius: 50%;
+  position: relative;
+  transform: rotate(45deg);
+}
+
+.loader::before {
+  content: "";
+  position: absolute;
+  inset: -0.75rem;
+  border-radius: 50%;
+  border: 0.75rem solid #1e3a8a;
+}
+
+.animate-loader::before {
+  animation: l18 5s infinite linear;
+}
+
+@keyframes l18 {
+  0% {
+    clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+  }
+  25% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
+  }
+  50% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
+  }
+  75% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  }
+}
+
+.loader-container {
+  position: relative;
+  width: 1.5rem;
+  aspect-ratio: 1;
+}
+
+.loader-background {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 0.75rem solid transparent;
+  background-color: #1e3a8a;
+}
+
+.fitur-img.animate-zoomIn {
+  animation: zoomIn 5s ease-in-out infinite;
+}
+
+@keyframes zoomIn {
+  0%,
+  100% {
+    transform: scale(0);
+  }
+  20%,
+  95% {
+    transform: scale(1);
+  }
+}

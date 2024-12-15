@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sentiment Analysis</title>
 
-    <!-- Tailwind CDN -->
+    <!-- CDN Alpine.js -->
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <!-- CDN Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Daisy UI CDN -->
@@ -15,7 +18,14 @@
       type="text/css"
     />
 
-    <!-- HTML in your document's head -->
+    <!-- Favicon -->
+    <link
+      rel="shortcut icon"
+      href="../static/images/logo.png"
+      type="image/x-icon"
+    />
+
+    <!-- Inter Font -->
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 
@@ -28,20 +38,8 @@
     <!-- SweetAlert JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <style>
-      /* CSS */
-      :root {
-        font-family: Inter, sans-serif;
-        font-feature-settings: "liga" 1, "calt" 1, "cv11" 1; /* Perbaiki penulisan properti font-feature-settings */
-      }
-
-      /* Cek apakah browser mendukung font-variation-settings */
-      @supports (font-variation-settings: normal) {
-        :root {
-          font-family: "InterVariable", sans-serif; /* Pastikan nama font benar */
-        }
-      }
-    </style>
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="../static/css/styles.css" />
   </head>
   <body>
     <div class="bg-white h-screen">
@@ -53,11 +51,7 @@
         >
           <div class="flex">
             <a href="#" class="-m-1.5 p-1.5 flex gap-4 items-center">
-              <img
-                class="h-8 w-auto"
-                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                alt=""
-              />
+              <img class="h-8 w-auto" src="../static/images/logo.png" alt="" />
               <span class="">SentimenGo</span>
             </a>
           </div>
@@ -65,8 +59,8 @@
       </header>
       <!-- Header - End -->
 
-      <!-- Page Content - Start -->
-      <div class="relative isolate px-6 pt-14 lg:px-8">
+      <!-- Hero - Start -->
+      <section id="upload" class="relative isolate px-6 pt-14 lg:px-8">
         <!-- Gradient -->
         <div
           class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
@@ -105,12 +99,10 @@
             >
               Gojek Sentiment Analysis
             </h1>
-            <p
-              class="mt-8 text-pretty text-lg font-medium text-gray-500 sm:text-xl/8"
-            >
-              Unleash the power of sentiment analysis to monitor your online
-              presence, understand public opinions, and drive impactful
-              decisions.
+            <p class="mt-8 text-pretty text-lg text-gray-500 sm:text-lg/8">
+              Maksimalkan kekuatan analisis sentimen untuk memantau kehadiran
+              online Anda, memahami opini publik, dan mengambil keputusan yang
+              berdampak.
             </p>
 
             <!-- Form untuk upload file data csv / excel  -->
@@ -133,6 +125,9 @@
             </form>
           </div>
         </div>
+        <!-- Main Content - End -->
+
+        <!-- Gradient -->
         <div
           class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
           aria-hidden="true"
@@ -161,8 +156,187 @@
             "
           ></div>
         </div>
-      </div>
-      <!-- Page Content - End -->
+      </section>
+      <!-- Hero - End -->
+
+      <!-- Tentang -->
+      <section id="tentang" x-data="tentangAnimation()" x-init="init()">
+        <div class="container mx-auto px-4 text-center py-24">
+          <p
+            class="w-fit mx-auto relative md:text-sm text-xs after:content-[''] after:absolute after:h-1/2 after:bg-blue-100 after:bottom-0 after:w-full after:left-0 after:-z-10 md:font-medium font-normal opacity-0"
+            x-ref="tentangSmallTitleText"
+          >
+            Tentang
+          </p>
+          <h1
+            class="font-semibold lg:text-4xl mt-1 mb-4 lg:leading-tight leading-normal text-xl w-full opacity-0"
+            x-ref="tentangTitleText"
+          >
+            SentimenGo
+          </h1>
+          <p
+            class="lg:w-2/3 w-full mx-auto leading-loose text-sm lg:text-base opacity-0"
+            x-ref="tentangParagrafText"
+          >
+            Sebuah aplikasi berbasis web yang dirancang untuk
+            <span class="text-blue-600"
+              >menganalisis dan memantau sentimen dari ulasan pengguna
+              Gojek</span
+            >secara otomatis. Dengan teknologi canggih, SentimenGo mampu
+            mengidentifikasi dan mengklasifikasikan perasaan pengguna – apakah
+            positif, negatif, atau netral – sehingga memudahkan pengelolaan
+            pengalaman pelanggan dan pengambilan keputusan yang lebih tepat.
+          </p>
+        </div>
+      </section>
+
+      <!-- Tahapan -->
+      <section id="tahapan" x-data="tahapanDataAndAnimation()" x-init="init()">
+        <div class="container px-4 mx-auto py-24">
+          <p
+            class="w-fit mx-auto relative md:text-sm text-xs after:content-[''] after:absolute after:h-1/2 after:bg-blue-100 after:bottom-0 after:w-full after:left-0 after:-z-10 md:font-medium font-normal opacity-0"
+            x-ref="tahapanSmallTitleText"
+          >
+            Cara Penggunaan
+          </p>
+          <h1
+            class="text-center font-semibold lg:text-4xl mt-1 mb-4 lg:leading-tight leading-normal text-xl w-full opacity-0"
+            x-ref="tahapanTitleText"
+          >
+            Jelajahi Solusi Praktis Analisis Sentimen Online
+          </h1>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12"
+            x-ref="tahapanPointText"
+          >
+            <template x-for="(tahapan, index) in tahapanPoints" :key="index">
+              <div
+                class="bg-transparent p-4 rounded-md shadow-xl border-2 border-blue-500 opacity-0"
+              >
+                <p class="text-5xl bold" x-text="index+1"></p>
+                <h2 class="text-lg font-bold mb-4" x-text="tahapan.title"></h2>
+                <p
+                  class="text-sm lg:text-base"
+                  x-text="tahapan.description"
+                ></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </section>
+
+      <!-- Teams -->
+      <section id="team" x-data="teamDataAndAnimation()" x-init="init()">
+        <div class="container px-4 mx-auto py-24">
+          <p
+            class="w-fit mx-auto relative md:text-sm text-xs after:content-[''] after:absolute after:h-1/2 after:bg-blue-100 after:bottom-0 after:w-full after:left-0 after:-z-10 md:font-medium font-normal opacity-0"
+            x-ref="teamSmallTitleText"
+          >
+            Team
+          </p>
+          <h1
+            class="text-center font-semibold lg:text-4xl mt-1 mb-4 lg:leading-tight leading-normal text-xl w-full opacity-0"
+            x-ref="teamTitleText"
+          >
+            Gema Indonesia
+          </h1>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12"
+            x-ref="teamPointText"
+          >
+            <template x-for="(team, index) in teamPoints" :key="index">
+              <div
+                class="bg-transparent p-4 rounded-md shadow-xl opacity-0 text-center"
+              >
+                <img
+                  :src="team.imageURL"
+                  alt="Icon"
+                  class="mb-4 block mx-auto"
+                />
+                <h2 class="text-lg font-bold mb-4" x-text="team.title"></h2>
+                <p class="text-sm lg:text-base" x-text="team.description"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </section>
+
+      <!-- Closure -->
+      <section id="closure" x-data="closureAnimation()" x-init="init()">
+        <div
+          class="container py-16 lg:py-24 px-4 mx-auto bg-blue-50 rounded-xl w-[95%]"
+        >
+          <p
+            class="w-fit mx-auto relative md:text-sm text-xs after:content-[''] after:absolute after:h-1/2 after:bg-blue-300 after:bottom-0 after:w-full after:left-0 after:-z-10 z-10 md:font-medium font-normal opacity-0"
+            x-ref="closureSmallTitleText"
+          >
+            Mulai Sekarang
+          </p>
+          <h1
+            class="text-center font-semibold lg:text-4xl mt-1 mb-4 lg:leading-tight leading-normal text-xl w-full opacity-0"
+            x-ref="closureTitleText"
+          >
+            Analisis Sentimen Pengguna Gojek
+          </h1>
+          <p
+            class="text-sm lg:text-base text-center w-fit md:w-2/3 mx-auto mb-8 opacity-0"
+            x-ref="closureParagrafText"
+          >
+            Mulai jelajahi manfaat dari analisis sentimen yang lebih akurat dan
+            efisien. Dapatkan wawasan berharga dari ulasan pengguna dengan satu
+            klik.
+          </p>
+          <a
+            href="#upload"
+            class="w-fit mx-auto flex items-center space-x-2 font-medium text-white bg-blue-800 hover:bg-blue-900 py-3 px-3 md:py-2.5 rounded-full transition-[background] duration-300 text-sm opacity-0"
+            x-ref="closureCta"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-up"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M12 5l0 14" />
+              <path d="M18 11l-6 -6" />
+              <path d="M6 11l6 -6" />
+            </svg>
+            <span>Analisis Sekarang</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <div
+          class="container py-12 px-4 mx-auto flex items-center justify-center flex-col sm:flex-row space-y-5 sm:space-y-0"
+        >
+          <div class="logo">
+            <a
+              href="."
+              class="font-semibold text-lg text-blue-900 flex items-center space-x-2"
+            >
+              <img
+                src="../static/images/logo.png"
+                alt="SentimenGo"
+                width="50"
+                height="50"
+              />
+              <span>SentimenGo</span></a
+            >
+          </div>
+        </div>
+        <p class="text-center text-xs opacity-70 pb-4">
+          Copyright &copy; 2024. Gema Indonesia. All rights reserved.
+        </p>
+      </footer>
     </div>
 
     <!-- SweetAlert for display errors -->
@@ -179,5 +353,7 @@
       {% endfor %}
     </script>
     {% endif %} {% endwith %}
+
+    <script src="../static/js/script.js"></script>
   </body>
 </html>
