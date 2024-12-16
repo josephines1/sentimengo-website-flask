@@ -248,11 +248,11 @@
               <div
                 class="bg-transparent p-4 rounded-md shadow-xl opacity-0 text-center"
               >
-                <img
-                  :src="team.imageURL"
-                  alt="Icon"
-                  class="mb-4 block mx-auto"
-                />
+                <div class="avatar">
+                  <div class="w-24 rounded-full">
+                    <img :src="team.imageURL" />
+                  </div>
+                </div>
                 <h2 class="text-lg font-bold mb-4" x-text="team.title"></h2>
                 <p class="text-sm lg:text-base" x-text="team.description"></p>
               </div>

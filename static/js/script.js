@@ -119,26 +119,22 @@ function teamDataAndAnimation() {
       {
         title: "Josephine",
         description: "Project Manager",
-        imageURL:
-          "https://acmindonesia.sharepoint.com/_layouts/15/userphoto.aspx?size=S&accountname=josephinesantoso9b%40member.maribelajar.org",
+        imageURL: "../static/images/team/josephine.jpg",
       },
       {
         title: "Fatmah",
         description: "Data Analyst",
-        imageURL:
-          "https://acmindonesia.sharepoint.com/_layouts/15/userphoto.aspx?size=S&accountname=fatmahsp08%40member.maribelajar.org",
+        imageURL: "../static/images/team/fatmah.jpg",
       },
       {
         title: "Roro Pradnya Palupi",
         description: "UI/UX Designer",
-        imageURL:
-          "https://acmindonesia.sharepoint.com/_layouts/15/userphoto.aspx?size=S&accountname=anyaapalupi%40member.maribelajar.org",
+        imageURL: "../static/images/team/anya.jpg",
       },
       {
         title: "Sekar Ayu Danastri",
         description: "Data Engineer",
-        imageURL:
-          "https://acmindonesia.sharepoint.com/_layouts/15/userphoto.aspx?size=S&accountname=danastri350%40member.maribelajar.org",
+        imageURL: "../static/images/team/sekar.jpg",
       },
     ],
     setupIntersectionObserver() {
