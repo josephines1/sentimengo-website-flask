@@ -95,84 +95,127 @@
             SentimenGo Analysis Summary
           </h1>
 
-          <div class="lg:flex-row items-center flex-col flex mt-4 gap-4">
-            <!-- Pie Chart -->
-            <img
-              src="data:image/png;base64,{{ image_data }}"
-              alt="Sentiment Distribution"
-              class="w-96 border-2 border-blue-600 rounded-md"
-            />
+          <div class="grafik mt-8 mb-16">
+            <div class="divider divider-start">
+              <h2
+                class="text-lg font-semibold tracking-tight text-gray-700 sm:text-xl"
+              >
+                Hasil Analisis Sentimen
+              </h2>
+            </div>
 
-            <div class="text w-full">
-              <!-- Rata-rata Confidence Score -->
-              <div class="mb-4">
-                <h3
-                  class="text-xl font-bold text-gray-900 sm:truncate sm:text-lg sm:tracking-tight"
-                >
-                  Average Confidence Score
-                </h3>
-                <p
-                  class="py-1 px-2 mt-1 rounded-lg bg-blue-600 text-white w-fit"
-                >
-                  {{ avg_probability }}%
-                </p>
-              </div>
+            <div class="lg:flex-row items-center flex-col flex mt-4 gap-4">
+              <!-- Pie Chart -->
+              <img
+                src="data:image/png;base64,{{ image_data }}"
+                alt="Sentiment Distribution"
+                class="w-96 border-2 border-blue-600 rounded-md"
+              />
 
-              <!-- Distribusi sentiment -->
-              <div class="mb-4">
-                <h3
-                  class="text-xl font-bold text-gray-900 sm:truncate sm:text-lg sm:tracking-tight"
-                >
-                  Sentiment Counts
-                </h3>
-                <div class="stats shadow md:w-fit w-full">
-                  {% for sentiment, count in sentiment_counts.items() %}
-                  <div class="stat place-items-center">
-                    <div class="stat-title">{{ sentiment|capitalize }}</div>
-                    <div
-                      class="stat-value {% if sentiment == 'positif' %} text-green-600 {% elif sentiment == 'negatif' %} text-red-600 {% else %} text-blue-600 {% endif %}"
-                    >
-                      {{ count }}
-                    </div>
-                  </div>
-                  {% endfor %}
+              <div class="text w-full">
+                <!-- Rata-rata Confidence Score -->
+                <div class="mb-4">
+                  <h3
+                    class="text-xl font-bold text-gray-900 sm:truncate sm:text-lg sm:tracking-tight"
+                  >
+                    Average Confidence Score
+                  </h3>
+                  <p
+                    class="py-1 px-2 mt-1 rounded-lg bg-blue-600 text-white w-fit"
+                  >
+                    {{ avg_probability }}%
+                  </p>
                 </div>
-              </div>
 
-              <!-- Button download CSV dan PDF -->
-              <div class="mb-4">
-                <a class="btn btn-primary" href="/download_pdf">
-                  Download Report (PDF)
-                </a>
-                <a class="btn btn-outline btn-primary" href="/download_csv">
-                  Download Report (CSV)
-                </a>
+                <!-- Distribusi sentiment -->
+                <div class="mb-4">
+                  <h3
+                    class="text-xl font-bold text-gray-900 sm:truncate sm:text-lg sm:tracking-tight"
+                  >
+                    Sentiment Counts
+                  </h3>
+                  <div class="stats shadow md:w-fit w-full">
+                    {% for sentiment, count in sentiment_counts.items() %}
+                    <div class="stat place-items-center">
+                      <div class="stat-title">{{ sentiment|capitalize }}</div>
+                      <div
+                        class="stat-value {% if sentiment == 'positif' %} text-green-600 {% elif sentiment == 'negatif' %} text-red-600 {% else %} text-blue-600 {% endif %}"
+                      >
+                        {{ count }}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Button download CSV dan PDF -->
+                <div class="mb-4">
+                  <a class="btn btn-primary" href="/download_pdf">
+                    Download Report (PDF)
+                  </a>
+                  <a class="btn btn-outline btn-primary" href="/download_csv">
+                    Download Result (CSV)
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="overflow-x-auto mx-auto max-h-[90vh] mt-4">
-            <table
-              border="1"
-              class="table table-xs table-pin-rows p-3 bg-white"
-            >
-              <thead>
-                <tr>
-                  {% for column in columns %}
-                  <th>{{ column }}</th>
+          <div class="tabel-hasil-analisis mt-8 mb-16">
+            <div class="divider divider-start">
+              <h2
+                class="text-lg font-semibold tracking-tight text-gray-700 sm:text-xl"
+              >
+                Data Hasil Analisis Sentimen
+              </h2>
+            </div>
+            <div class="overflow-x-auto mx-auto max-h-[50vh] my-4">
+              <table
+                border="1"
+                class="table table-xs table-pin-rows p-3 bg-white"
+              >
+                <thead>
+                  <tr>
+                    {% for column in columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in df %}
+                  <tr class="hover">
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                  </tr>
                   {% endfor %}
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in df %}
-                <tr class="hover">
-                  {% for cell in row %}
-                  <td>{{ cell }}</td>
-                  {% endfor %}
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="power-bi-embed mt-8 mb-16">
+            <div class="divider divider-start">
+              <h2
+                class="text-lg font-semibold tracking-tight text-gray-700 sm:text-xl"
+              >
+                Insight Menyeluruh
+              </h2>
+            </div>
+            <p class="text-sm italic">
+              Data akan diperbarui secara otomatis setiap pukul 08.00 dan 20.00
+              WIB.
+            </p>
+            <div class="mx-auto flex justify-center items-center my-4">
+              <iframe
+                title="SentimenGo_Analysis"
+                height="560.25"
+                src="https://app.powerbi.com/view?r=eyJrIjoiMDI1YmY4ZWEtMTU3OS00MjYyLWE0MjktODAxNzBhMDc2ZjA0IiwidCI6ImQ3Yjk1ZWM0LTlhN2YtNDI2MC1iMmUzLWViNTNmMGFjODQwMSIsImMiOjEwfQ%3D%3D&pageName=b783d0c038483e4b2403"
+                frameborder="0"
+                allowfullscreen="true"
+                class="w-full"
+              ></iframe>
+            </div>
           </div>
         </div>
 
