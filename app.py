@@ -11,10 +11,9 @@ from io import BytesIO
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 import re
 from nltk.corpus import stopwords
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, HRFlowable, Spacer
 from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
 from tempfile import NamedTemporaryFile
 import base64
 from datetime import timedelta, datetime
@@ -93,70 +92,129 @@ def save_to_pdf(df, fig, avg_probability, pdf_buffer=None, output_path=None):
     else:
         doc = SimpleDocTemplate(output_path, pagesize=letter)
 
+    # Definisikan style untuk Times New Roman
+    style_normal = ParagraphStyle(
+        name='Normal', 
+        fontName='Times-Roman', 
+        fontSize=12, 
+        leading=14,
+        alignment=4,
+        leftIndent=20
+    )
+
+    style_bold_and_center = ParagraphStyle(
+        name='Bold', 
+        fontName='Times-Bold', 
+        fontSize=14, 
+        leading=16,
+        alignment=1
+    )
+
+    style_header = ParagraphStyle(
+        name='Header', 
+        fontName='Times-Bold', 
+        fontSize=16, 
+        leading=18,
+        alignment=1
+    )
+
+    logo_path = "./static/images/logo.png"
+
     elements = []
 
-    # Tambahkan judul dan rata-rata
-    elements.append(Table([[f"Sentiment Analysis Report"]], style=[
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 16),
-    ]))
-    elements.append(Table([[f"Rata-rata confidence score: {avg_probability:.2f}"]], style=[
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 0), (-1, -1), 12),
-    ]))
+    # Menambahkan Header (logo + nama proyek)
+    # Menambahkan logo di header
+    elements.append(Image(logo_path, width=50, height=50))  # Sesuaikan dengan ukuran logo Anda
 
-    # Membagi tabel menjadi beberapa bagian
-    table_chunks = split_table(df.head(10))  # Ambil 10 baris pertama untuk setiap chunk
-    for chunk in table_chunks:
-        # Gunakan Paragraph untuk membungkus teks
-        data = [[Paragraph(cell, getSampleStyleSheet()['Normal']) if isinstance(cell, str) else cell for cell in row] for row in chunk.values.tolist()]
-        table_data = [chunk.columns.tolist()] + data
-        
-        # Tentukan lebar kolom untuk membatasi lebar
-        col_widths = [100] * len(chunk.columns)  # Tentukan lebar kolom (ubah sesuai kebutuhan)
-        
-        # Buat tabel dengan lebar kolom yang ditentukan
-        table = Table(table_data, colWidths=col_widths)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ]))
-        elements.append(table)
+    # Menambahkan nama proyek "SentimenGo"
+    elements.append(Paragraph("<b>SentimenGo</b>", style_header))
+
+    # Tambahkan judul dan rata-rata
+    elements.append(Paragraph(f"Sentiment Analysis Report", style_header))
+    elements.append(Paragraph(f"Confidence score: {avg_probability:.2f}", style_bold_and_center))
+
+    # Menghitung jumlah absolut untuk setiap sentimen
+    positive_count = df['sentiment'].value_counts().get('positif', 0)
+    negative_count = df['sentiment'].value_counts().get('negatif', 0)
+    neutral_count = df['sentiment'].value_counts().get('netral', 0)
+
+    # Menghitung persentase
+    sentiment_counts = df['sentiment'].value_counts(normalize=True) * 100
+    sentiment_counts = sentiment_counts.round(2)  # Membulatkan persentase ke 2 angka desimal
+
+    positive_percentage = sentiment_counts.get('positif', 0)
+    negative_percentage = sentiment_counts.get('negatif', 0)
+    neutral_percentage = sentiment_counts.get('netral', 0)
+
+    # Membuat rekomendasi berdasarkan sentimen dominan
+    if positive_percentage > negative_percentage and positive_percentage > neutral_percentage:
+        recommendation = """
+        Rekomendasi:
+        <ul>
+            <li>Perkuat aspek yang disukai pelanggan dengan mempertahankan atau meningkatkan kualitas layanan yang positif.</li>
+            <li>Fokus pada pengembangan produk/layanan yang mendapatkan ulasan positif.</li>
+        </ul>
+        """
+    elif negative_percentage > positive_percentage and negative_percentage > neutral_percentage:
+        recommendation = """
+        Rekomendasi:
+        <ul>
+            <li>Lakukan perbaikan pada aspek yang sering dikeluhkan oleh pelanggan, yang menyebabkan ulasan negatif.</li>
+            <li>Tingkatkan kualitas layanan di area yang berpotensi mengurangi ulasan negatif.</li>
+        </ul>
+        """
+    elif neutral_percentage > positive_percentage and neutral_percentage > negative_percentage:
+        recommendation = """
+        Rekomendasi:
+        <ul>
+            <li>Fokus pada peningkatan pengalaman pengguna agar mereka merasa lebih yakin untuk memberikan penilaian lebih jelas.</li>
+            <li>Arahkan ulasan ke arah yang lebih positif atau negatif dengan mengidentifikasi titik perbaikan.</li>
+        </ul>
+        """
+    else:
+        # Jika tidak ada yang dominan, beri rekomendasi umum
+        recommendation = """
+        Rekomendasi:
+        <ul>
+            <li>Tinjau ulasan secara menyeluruh untuk memastikan kualitas layanan dan produk yang konsisten.</li>
+            <li>Tingkatkan keterlibatan dengan pengguna untuk mendapatkan umpan balik yang lebih beragam.</li>
+        </ul>
+        """
+
+    # Analisis grafik dan rekomendasi
+    analysis_text = f"""
+    Berdasarkan hasil diagram distribusi sentimen pada ulasan yang diberikan, dapat diketahui bahwa jumlah ulasan positif 
+    adalah {positive_count} ({positive_percentage}%), jumlah ulasan negatif adalah {negative_count} ({negative_percentage}%), dan jumlah ulasan netral adalah {neutral_count} ({neutral_percentage}%).
+    """
 
     # Tambahkan grafik ke PDF
     with NamedTemporaryFile(delete=False, suffix=".png") as temp_img_file:
         fig.savefig(temp_img_file.name, format="png")
         temp_img_path = temp_img_file.name
 
-    elements.append(Table([["Distribusi Sentimen"]], style=[
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 12),
-    ]))
-    elements.append(Image(temp_img_path, width=400, height=400))
+    # Menambahkan garis pemisah sebelum grafik menggunakan HRFlowable
+    elements.append(HRFlowable(width="100%", thickness=1, lineCap='round', color="#000", spaceBefore=1, spaceAfter=1, hAlign='CENTER', vAlign='BOTTOM', dash=None))
+
+    # Menambahkan spacer (ruang kosong) sebelum "Distribusi Sentimen"
+    elements.append(Spacer(1, 20))
+
+    # Menambahkan judul untuk grafik
+    elements.append(Paragraph("<b>Distribusi Sentimen</b>", style_normal))
+
+    # Menampilkan gambar grafik
+    elements.append(Image(temp_img_path, width=200, height=200))
+
+    # Menambahkan analisis teks ke dalam PDF
+    elements.append(Paragraph(analysis_text, style_normal))
+
+    # Menambahkan rekomendasi berdasarkan sentimen dominan
+    elements.append(Paragraph(recommendation, style_normal))
 
     # Build dokumen PDF
     doc.build(elements)
 
     # Bersihkan file sementara
     os.remove(temp_img_path)
-
-
-def split_table(df, max_columns=5):
-    """
-    Membagi tabel menjadi beberapa bagian jika jumlah kolom melebihi batas.
-    """
-    num_columns = df.shape[1]
-    chunks = [df.iloc[:, i:i + max_columns] for i in range(0, num_columns, max_columns)]
-    return chunks
 
 # Sentiment analysis function
 def analyze_sentiment(df):
