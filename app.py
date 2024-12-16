@@ -75,7 +75,7 @@ def create_sentiment_graph(df_result):
     
     # Create a pie chart for sentiment distribution
     fig, ax = plt.subplots(figsize=(6, 6))
-    sentiment_counts.plot(kind='pie', autopct='%1.1f%%', ax=ax, startangle=90, colors=['#66b3ff', '#99ff99', '#ffcc99'])
+    sentiment_counts.plot(kind='pie', autopct='%1.1f%%', ax=ax, startangle=90, colors=['#16A34A', '#2563EB', '#DC2626'])
     ax.set_ylabel('')  # Hide the label of the pie chart
     ax.set_title("Sentiment Distribution")
     
@@ -278,11 +278,10 @@ def process_data():
     df_result = analyze_sentiment(df)
 
     sentiment_counts = df_result['sentiment'].value_counts()
-    sentiment_counts_dict = sentiment_counts.to_dict()
 
     # membuat grafik
     fig, ax = plt.subplots()
-    ax.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90, colors=['yellow', 'green', 'red'])
+    ax.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90, colors=['#16A34A', '#2563EB', '#DC2626'])
     ax.axis('equal')
 
     img_stream = BytesIO()
@@ -327,7 +326,7 @@ def summary():
 
     # Membuat grafik
     fig, ax = plt.subplots()
-    ax.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90, colors=['yellow', 'green', 'red'])
+    ax.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90, colors=['#16A34A', '#2563EB', '#DC2626'])
     ax.axis('equal')
 
     img_stream = BytesIO()
@@ -366,7 +365,7 @@ def download_pdf():
 
     # Create PDF in memory (without saving it to disk)
     pdf_buffer = BytesIO()
-    save_to_pdf(df_result, fig, avg_probability, pdf_buffer=pdf_buffer)  # PDF to buffer for user download
+    save_to_pdf(df_result, fig, avg_probability, pdf_buffer=pdf_buffer) 
 
     # Set buffer position to the beginning
     pdf_buffer.seek(0)
@@ -379,7 +378,6 @@ def download_pdf():
 
     return send_file(pdf_buffer, as_attachment=True, download_name=pdf_filename, mimetype='application/pdf')
 
-
 @app.route('/download_csv')
 def download_csv():
     if 'preprocessed_data' not in session:
@@ -388,15 +386,21 @@ def download_csv():
     df = pd.DataFrame(session['preprocessed_data'])
     df_result = analyze_sentiment(df)
 
+    # Membuat file CSV dalam memori menggunakan BytesIO
+    csv_buffer = BytesIO()
+    df_result.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)  # Mengatur posisi cursor ke awal buffer agar bisa dibaca
+
+    # Mengatur nama file CSV dengan timestamp untuk keunikan
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-
-    # Tentukan path untuk CSV dengan nama file unik
     csv_filename = f"sentiment_analysis_output_{timestamp}.csv"
-    csv_path = os.path.join(app.config['CSV_OUTPUT_FOLDER'], csv_filename)
 
-    df_result.to_csv(csv_path, index=False)
-    return send_file(csv_path, as_attachment=True)
+    # Mengirim file CSV langsung ke pengguna tanpa menyimpannya ke server
+    return send_file(csv_buffer,
+                     as_attachment=True,
+                     download_name=csv_filename,
+                     mimetype='text/csv')
 
 if __name__ == '__main__':
     # Cek apakah folder untuk CSV sudah ada, jika belum buat folder tersebut
