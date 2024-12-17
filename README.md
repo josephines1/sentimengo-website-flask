@@ -22,7 +22,6 @@ Dibimbing oleh:
 - Analisis Sentimen Otomatis (Positif, Negatif, Netral).
 - Unggah & Download File CSV Hasil Analisis.
 - Visualisasi Dinamis yang Mudah Dipahami.
-- Akses Mudah di Desktop & Mobile (pengembangan aplikasi web dan mobile sedang direncanakan!).
 
 ## Tech Stack
 
